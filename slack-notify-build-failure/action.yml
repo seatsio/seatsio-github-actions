@@ -4,6 +4,11 @@ description: |
   Note: This action itself does not check the branch — make sure to restrict it using
   `if: failure() && github.ref == 'refs/heads/master'` in your workflow file.
 
+inputs:
+  webhook_url:
+    description: "Slack webhook URL"
+    required: true
+
 runs:
   using: "composite"
   steps:
