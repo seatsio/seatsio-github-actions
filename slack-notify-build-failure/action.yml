@@ -1,0 +1,24 @@
+name: "Slack Notify: Build Failure"
+description: |
+  Sends a Slack message to #build_status when a build fails.
+  Note: This action itself does not check the branch — make sure to restrict it using
+  `if: failure() && github.ref == 'refs/heads/master'` in your workflow file.
+
+runs:
+  using: "composite"
+  steps:
+    - uses: slackapi/slack-github-action@v2.0.0
+      with:
+        webhook: ${{ secrets.SLACK_WEBHOOK_URL }}
+        webhook-type: incoming-webhook
+        payload: |
+          {
+            "channel": "#build_status",
+            "text": "❌ Build FAILED.",
+            "attachments": [
+              {
+                "color": "danger",
+                "text": "*Repo*: ${{ github.repository }} \n*Branch*: ${{ github.ref_name }}.\n*Commit*: <${{ github.event.head_commit.url }}|${{ github.event.head_commit.message }}>"
+              }
+            ]
+          }
