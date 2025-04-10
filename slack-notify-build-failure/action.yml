@@ -14,7 +14,7 @@ runs:
         payload: |
           {
             "channel": "#build_status",
-            "text": "❌ Build FAILED.",
+            "text": "❌ ${{ github.repository }} build FAILED",
             "attachments": [
               {
                 "color": "danger",

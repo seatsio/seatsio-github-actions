@@ -14,7 +14,7 @@ runs:
         payload: |
           {
             "channel": "#build_status",
-            "text": "✅ SUCCESS. \nPlease deploy *${{ github.repository }}*, ${{ github.actor }}.",
+            "text": "✅ ${{ github.repository }} built successfully! \nPlease deploy, ${{ github.actor }}.",
             "attachments": [
               {
                 "color": "good",
