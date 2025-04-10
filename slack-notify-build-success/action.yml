@@ -9,7 +9,7 @@ runs:
   steps:
     - uses: slackapi/slack-github-action@v2.0.0
       with:
-        webhook: ${{ secrets.SLACK_WEBHOOK_URL }}
+        webhook: ${{ inputs.webhook_url }}
         webhook-type: incoming-webhook
         payload: |
           {
