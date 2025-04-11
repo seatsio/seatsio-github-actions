@@ -1,0 +1,30 @@
+name: "Slack Notify: Rollback"
+description: |
+  Sends a Slack message when a rollback finishes.
+  Use with `if: always()` and pass status as input (e.g. success, failure, cancelled).
+
+inputs:
+  webhook_url:
+    description: "Slack webhook URL"
+    required: true
+  status:
+    description: "Rollback result: success, failure, or cancelled. Use technote-space/workflow-conclusion-action@v3"
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+    - uses: slackapi/slack-github-action@v2.0.0
+      with:
+        webhook: ${{ inputs.webhook_url }}
+        webhook-type: incoming-webhook
+        payload: |
+          {
+            "text": "🔁 ${{ github.repository }}\n${{ inputs.status == 'success' && '✅ Rollback succeeded.' || inputs.status == 'cancelled' && '⚪ Rollback was cancelled.' || '❌ Rollback failed.' }}",
+            "attachments": [
+              {
+                "color": "${{ inputs.status == 'success' && 'good' || inputs.status == 'cancelled' && '#aaaaaa' || 'danger' }}",
+                "text": "*Repo*: ${{ github.repository }}\n*Branch*: ${{ github.ref_name }}\n*Commit:* <${{ github.event.head_commit.url }}|${{ github.event.head_commit.message }}>\n*Run:* <https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}|View on GitHub>"
+              }
+            ]
+          }
