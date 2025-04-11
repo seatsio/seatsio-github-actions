@@ -17,7 +17,8 @@ runs:
         webhook: ${{ inputs.webhook_url }}
         webhook-type: incoming-webhook
         payload: |
-          {            
+          {
+            "icon_emoji": ":hammer_and_wrench:",
             "text": "✅ ${{ github.repository }} built successfully! \nPlease deploy, ${{ github.actor }}.",
             "attachments": [
               {
