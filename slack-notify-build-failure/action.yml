@@ -18,7 +18,7 @@ runs:
         webhook-type: incoming-webhook
         payload: |
           {            
-            "text": "❌ ${{ github.repository }} build FAILED",
+            "text": "🛠️ *${{ github.repository }}* \n❌Build failed.",
             "attachments": [
               {
                 "color": "danger",
