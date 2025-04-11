@@ -17,8 +17,7 @@ runs:
         webhook: ${{ inputs.webhook_url }}
         webhook-type: incoming-webhook
         payload: |
-          {
-            "channel": "#build_status",
+          {            
             "text": "❌ ${{ github.repository }} build FAILED",
             "attachments": [
               {

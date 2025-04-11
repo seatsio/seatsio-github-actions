@@ -19,8 +19,7 @@ runs:
         webhook: ${{ inputs.webhook_url }}
         webhook-type: incoming-webhook
         payload: |
-          {
-            "channel": "#deploys",
+          {            
             "text": "${{ inputs.status == 'success' && '✅ Deployment succeeded' || inputs.status == 'cancelled' && '⚪ Deployment was cancelled' || '❌ Deployment failed' }}",
             "attachments": [
               {

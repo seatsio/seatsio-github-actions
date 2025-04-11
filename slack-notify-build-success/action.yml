@@ -17,8 +17,7 @@ runs:
         webhook: ${{ inputs.webhook_url }}
         webhook-type: incoming-webhook
         payload: |
-          {
-            "channel": "#build_status",
+          {            
             "text": "✅ ${{ github.repository }} built successfully! \nPlease deploy, ${{ github.actor }}.",
             "attachments": [
               {
