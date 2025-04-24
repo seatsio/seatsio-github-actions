@@ -20,7 +20,7 @@ runs:
             "attachments": [
               {
                 "color": "danger",
-                "text": "*Repo*: ${{ github.repository }}\n*Branch*: ${{ github.ref_name }}\n*Commit:* <${{ github.event.head_commit.url }}|${{ github.event.head_commit.message }}>\n*Run:* <https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}|View on GitHub>"
+                "text": "*Repo*: ${{ github.repository }}\n*Branch*: ${{ github.ref_name }}\n*Commit:* <${{ github.event.head_commit.url }}|${{ github.sha }}>\n*Run:* <https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}|View on GitHub>"
               }
             ]
           }
