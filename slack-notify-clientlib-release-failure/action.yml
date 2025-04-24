@@ -16,7 +16,7 @@ runs:
         webhook-type: incoming-webhook
         payload: |
           {
-            "text": "📦 ${{ github.repository }}\n❌ Release failed.",
+            "text": "❌ Release failed.",
             "attachments": [
               {
                 "color": "danger",

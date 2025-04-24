@@ -20,7 +20,7 @@ runs:
         webhook-type: incoming-webhook
         payload: |
           {            
-            "text": "🚀 ${{ github.repository }}\n${{ inputs.status == 'success' && '✅ Deploy succeeded.' || inputs.status == 'cancelled' && '⚪ Deploy was cancelled.' || '❌ Deploy failed.' }}",
+            "text": "${{ inputs.status == 'success' && '✅ Deploy succeeded.' || inputs.status == 'cancelled' && '⚪ Deploy was cancelled.' || '❌ Deploy failed.' }}",
             "attachments": [
               {
                 "color": "${{ inputs.status == 'success' && 'good' || inputs.status == 'cancelled' && '#aaaaaa' || 'danger' }}",

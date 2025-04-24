@@ -20,7 +20,7 @@ runs:
         webhook-type: incoming-webhook
         payload: |
           {
-            "text": "🔁 ${{ github.repository }}\n${{ inputs.status == 'success' && '✅ Rollback succeeded.' || inputs.status == 'cancelled' && '⚪ Rollback was cancelled.' || '❌ Rollback failed.' }}",
+            "text": "${{ inputs.status == 'success' && '✅ Rollback succeeded.' || inputs.status == 'cancelled' && '⚪ Rollback was cancelled.' || '❌ Rollback failed.' }}",
             "attachments": [
               {
                 "color": "${{ inputs.status == 'success' && 'good' || inputs.status == 'cancelled' && '#aaaaaa' || 'danger' }}",

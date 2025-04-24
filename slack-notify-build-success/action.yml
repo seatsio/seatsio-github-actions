@@ -18,7 +18,7 @@ runs:
         webhook-type: incoming-webhook
         payload: |
           {
-            "text": "🛠️ ${{ github.repository }} \n✅ Build succeeded. Please deploy, ${{ github.actor }}.",
+            "text": "✅ Build succeeded. Please deploy, ${{ github.actor }}.",
             "attachments": [
               {
                 "color": "good",
