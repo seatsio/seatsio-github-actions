@@ -18,11 +18,11 @@ runs:
         webhook-type: incoming-webhook
         payload: |
           {
-            "text": "✅ Build succeeded. Please deploy, ${{ github.actor }}.",
+            "text": "✅ ${{ github.event.repository.name }} build succeeded. Please deploy, ${{ github.actor }}.",
             "attachments": [
               {
                 "color": "good",
-                "text": "*Repo*: ${{ github.repository }} \n*Branch*: ${{ github.ref_name }}.\n*Commit*: <${{ github.event.head_commit.url }}|${{ github.sha }}>"
+                "text": "*Commit*: <${{ github.event.head_commit.url }}|${{ github.sha }}>"
               }
             ]
           }

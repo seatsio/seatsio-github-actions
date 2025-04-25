@@ -18,11 +18,11 @@ runs:
         webhook-type: incoming-webhook
         payload: |
           {            
-            "text": "❌ Build failed.",
+            "text": "❌ ${{ github.event.repository.name }} build failed.",
             "attachments": [
               {
                 "color": "danger",
-                "text": "*Repo*: ${{ github.repository }} \n*Branch*: ${{ github.ref_name }}.\n*Commit*: <${{ github.event.head_commit.url }}|${{ github.sha }}>\n*Failed build*: <https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}|${{ github.run_id }}>"
+                "text": "*Commit*: <${{ github.event.head_commit.url }}|${{ github.sha }}>\n*Failed build*: <https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}|${{ github.run_id }}>"
               }
             ]
           }

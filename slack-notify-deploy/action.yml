@@ -20,11 +20,11 @@ runs:
         webhook-type: incoming-webhook
         payload: |
           {            
-            "text": "${{ inputs.status == 'success' && '✅ Deploy succeeded.' || inputs.status == 'cancelled' && '⚪ Deploy was cancelled.' || '❌ Deploy failed.' }}",
+            "text": "${{ inputs.status == 'success' && format('✅ {0} deployed.', github.event.repository.name) || inputs.status == 'cancelled' && format('⚪ {0} deployment was cancelled.', github.event.repository.name) || format('❌ {0} deployment failed.', github.event.repository.name) }}",
             "attachments": [
               {
                 "color": "${{ inputs.status == 'success' && 'good' || inputs.status == 'cancelled' && '#aaaaaa' || 'danger' }}",
-                "text": "*Repo*: ${{ github.repository }}\n*Branch*: ${{ github.ref_name }}\n*Run:* <https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}|View on GitHub>"
+                "text": "*Run:* <https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}|View on GitHub>"
               }
             ]
           }
