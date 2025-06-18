@@ -12,13 +12,41 @@ inputs:
 runs:
   using: "composite"
   steps:
+    - name: Map GitHub user to Slack user
+      id: map-user
+      shell: bash
+      run: |
+        case "${{ github.actor }}" in
+          "mroloux")
+            echo "slack_user=<@U0ARJS7V1>" >> $GITHUB_OUTPUT
+            ;;
+          "schaloner")
+            echo "slack_user=<@U04GD5VV1MJ>" >> $GITHUB_OUTPUT
+            ;;
+          "bverbeken")
+            echo "slack_user=<@U08TY1PMK>" >> $GITHUB_OUTPUT
+            ;;
+          "PabloNeirotti")
+            echo "slack_user=<@U6TTMGX4G>" >> $GITHUB_OUTPUT
+            ;;
+          "mortendevold")
+            echo "slack_user=<@U04LW9F53HS>" >> $GITHUB_OUTPUT
+            ;;
+          "sdivelbiss")
+            echo "slack_user=<@U090TNSKADS>" >> $GITHUB_OUTPUT
+            ;;
+          *)
+            echo "slack_user=${{ github.actor }}" >> $GITHUB_OUTPUT
+            ;;
+        esac
+    
     - uses: slackapi/slack-github-action@v2.0.0
       with:
         webhook: ${{ inputs.webhook_url }}
         webhook-type: incoming-webhook
         payload: |
           {
-            "text": "✅ ${{ github.event.repository.name }} build succeeded. Please deploy, ${{ github.actor }}.",
+            "text": "✅ ${{ github.event.repository.name }} build succeeded. Please deploy, ${{ steps.map-user.outputs.slack_user }}.",
             "attachments": [
               {
                 "color": "good",
