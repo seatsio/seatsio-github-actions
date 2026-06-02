@@ -108,7 +108,7 @@ Two requirements:
           fetch-depth: 0
       - uses: seatsio/seatsio-github-actions/linear-release-notify@v1
         with:
-          linear_access_key: ${{ secrets.LINEAR_PRODUCTION_ACCESS_KEY }}
+          linear_access_key: ${{ secrets.LINEAR_ACCESS_KEY }}
           linear_client_id: ${{ secrets.LINEAR_CLIENT_ID }}
           linear_client_secret: ${{ secrets.LINEAR_CLIENT_SECRET }}
           environment: production
