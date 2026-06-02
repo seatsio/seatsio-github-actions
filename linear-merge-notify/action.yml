@@ -5,13 +5,11 @@ description: |
 
 inputs:
   linear_client_id:
-    description: "Linear OAuth app client ID (client-credentials grant). With linear_client_secret, comments on the branch's issue. Omit both to skip."
-    required: false
-    default: ""
+    description: "Linear OAuth app client ID (client-credentials grant)."
+    required: true
   linear_client_secret:
-    description: "Linear OAuth app client secret. Required together with linear_client_id to post comments."
-    required: false
-    default: ""
+    description: "Linear OAuth app client secret."
+    required: true
   branch_name:
     description: "Merged PR head branch, used to find the Linear issue. Defaults to github.head_ref."
     required: false
