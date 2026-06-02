@@ -1,0 +1,95 @@
+name: "Linear: release + notify assignees"
+description: |
+  Records a Linear release from the commits in this deploy.
+  When Linear OAuth app credentials (client id + secret) are set, also comments on each released
+  issue @mentioning its assignee, posting as the app (a bot) so no personal Linear seat is used.
+  Requires the caller to run actions/checkout with fetch-depth: 0 first (the release action needs full git history).
+
+inputs:
+  linear_access_key:
+    description: "Linear release-pipeline access key. Selects which pipeline/environment the release lands in."
+    required: true
+  linear_client_id:
+    description: "Linear OAuth app client ID (client-credentials grant). With linear_client_secret, comments on each released issue mentioning the assignee, posted as the app. Omit both to skip comments."
+    required: false
+    default: ""
+  linear_client_secret:
+    description: "Linear OAuth app client secret. Required together with linear_client_id to post comments."
+    required: false
+    default: ""
+  environment:
+    description: "Deploy environment, used to phrase the comment: production or staging."
+    required: false
+    default: "production"
+
+outputs:
+  release-url:
+    description: "URL of the Linear release, if one was created."
+    value: ${{ steps.release.outputs.release-url }}
+
+runs:
+  using: "composite"
+  steps:
+    - id: release
+      uses: linear/linear-release-action@v0
+      with:
+        access_key: ${{ inputs.linear_access_key }}
+
+    - name: Tag assignees on released issues
+      if: ${{ inputs.linear_client_id != '' && inputs.linear_client_secret != '' && steps.release.outputs.release-id != '' }}
+      shell: bash
+      env:
+        LINEAR_CLIENT_ID: ${{ inputs.linear_client_id }}
+        LINEAR_CLIENT_SECRET: ${{ inputs.linear_client_secret }}
+        RELEASE_ID: ${{ steps.release.outputs.release-id }}
+        ENVIRONMENT: ${{ inputs.environment }}
+      run: |
+        set -uo pipefail
+        case "$ENVIRONMENT" in
+          staging) msg="✅ Merged & on staging" ;;
+          *)       msg="🚀 Shipped to production" ;;
+        esac
+        # Mint a short-lived app-actor token (client-credentials grant). Comments are
+        # attributed to the OAuth app (a bot) and the app does not consume a Linear seat.
+        tok=$(curl -s https://api.linear.app/oauth/token \
+          --data-urlencode grant_type=client_credentials \
+          --data-urlencode "client_id=$LINEAR_CLIENT_ID" \
+          --data-urlencode "client_secret=$LINEAR_CLIENT_SECRET" \
+          --data-urlencode 'scope=read,comments:create')
+        token=$(jq -r '.access_token // empty' <<<"$tok" 2>/dev/null)
+        if [ -z "$token" ]; then
+          echo "::warning::Linear notify: could not obtain app token: $(jq -rc '.error // .' <<<"$tok" 2>/dev/null); skipped notifications"
+          exit 0
+        fi
+        api() {
+          curl -s https://api.linear.app/graphql \
+            -H "Authorization: Bearer $token" \
+            -H "Content-Type: application/json" \
+            --data @-
+        }
+        query='query($id:String!){ release(id:$id){ issues(first:250){ nodes{ id identifier assignee{ url } } } } }'
+        if ! resp=$(jq -n --arg q "$query" --arg id "$RELEASE_ID" '{query:$q,variables:{id:$id}}' | api); then
+          echo "::warning::Linear notify: could not reach Linear to fetch issues for release $RELEASE_ID; skipped notifications"
+          exit 0
+        fi
+        if errs=$(jq -e '.errors' <<<"$resp" 2>/dev/null); then
+          echo "::warning::Linear notify: GraphQL error fetching release issues: $(jq -c . <<<"$errs")"
+          exit 0
+        fi
+        jq -c '.data.release.issues.nodes[] | select(.assignee != null)' <<<"$resp" \
+          | while read -r issue; do
+              issueId=$(jq -r '.id' <<<"$issue")
+              ref=$(jq -r '.identifier // .id' <<<"$issue")
+              profile=$(jq -r '.assignee.url' <<<"$issue")
+              mut='mutation($i:CommentCreateInput!){ commentCreate(input:$i){ success } }'
+              body="$msg — $profile"
+              if ! out=$(jq -n --arg q "$mut" --arg id "$issueId" --arg b "$body" \
+                '{query:$q,variables:{i:{issueId:$id,body:$b}}}' | api); then
+                echo "::warning::Linear notify: HTTP error commenting on $ref"
+                continue
+              fi
+              if [ "$(jq -r '.data.commentCreate.success // false' <<<"$out")" != "true" ]; then
+                echo "::warning::Linear notify: comment on $ref was not created: $(jq -c '.errors // .data' <<<"$out")"
+              fi
+            done
+        exit 0

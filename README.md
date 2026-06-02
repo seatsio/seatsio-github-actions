@@ -1,4 +1,4 @@
-This project contains a number of reusable github actions to send slack notifications in case of build success or failure, deploys and rollbacks. 
+This project contains a number of reusable github actions: slack notifications for build success or failure, deploys and rollbacks, and a Linear action that records continuous-release deploys and notifies the assignees of the issues that shipped. 
 
 ## Usage
 See examples below. 
@@ -63,6 +63,55 @@ Same as for deploys: use `technote-space/workflow-conclusion-action@v3`.
         with:
           webhook_url: ${{ secrets.SLACK_WEBHOOK_URL }}
           status: ${{ env.WORKFLOW_CONCLUSION }}
+```
+
+### Linear release + notify
+
+`linear-release-notify` records a Linear continuous-release for the commits in a deploy and, when given OAuth app credentials, comments on each released issue @mentioning its assignee — "✅ Merged & on staging" or "🚀 Shipped to production". This nudges assignees to verify their work on staging and tells them when it reaches production.
+
+Two requirements:
+
+- Run `actions/checkout` with `fetch-depth: 0` **before** the action — the release action needs full git history. A shallow checkout produces an empty release.
+- `linear_access_key` is the per-pipeline key that selects which Linear pipeline/environment the release lands in, so **staging and production use different keys**. The `environment` input only controls the comment wording, so keep it consistent with the key you pass (it defaults to `production`).
+
+`linear_client_id` / `linear_client_secret` are a Linear **OAuth app** (client-credentials grant) used to post the @mention comments **as a bot**: the app is not a paid Linear seat and is not tied to a person, and because the bot (not you) authors the comment, the assignee actually gets notified. The action mints a short-lived app token at run time, so you only ever store the client id/secret. Create the app under **Settings → API → OAuth applications** with the `read` and `comments:create` scopes and the client-credentials grant enabled. Omit both inputs to record the release without commenting. Notifications are best-effort: a Linear API problem is reported as a workflow `::warning::` annotation but never fails the deploy.
+
+#### Staging
+
+```yaml
+  linear-release-staging:
+    runs-on: ubuntu-latest
+    needs: [ deploy-staging ]
+    if: success() && github.ref == 'refs/heads/master'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: seatsio/seatsio-github-actions/linear-release-notify@v1
+        with:
+          linear_access_key: ${{ secrets.LINEAR_STAGING_ACCESS_KEY }}
+          linear_client_id: ${{ secrets.LINEAR_CLIENT_ID }}
+          linear_client_secret: ${{ secrets.LINEAR_CLIENT_SECRET }}
+          environment: staging
+```
+
+#### Production
+
+```yaml
+  linear-release-production:
+    runs-on: ubuntu-latest
+    needs: [ deploy-production ]
+    if: success() && github.ref == 'refs/heads/master'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: seatsio/seatsio-github-actions/linear-release-notify@v1
+        with:
+          linear_access_key: ${{ secrets.LINEAR_PRODUCTION_ACCESS_KEY }}
+          linear_client_id: ${{ secrets.LINEAR_CLIENT_ID }}
+          linear_client_secret: ${{ secrets.LINEAR_CLIENT_SECRET }}
+          environment: production
 ```
 
 ## Releasing
