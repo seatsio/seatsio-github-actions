@@ -1,0 +1,38 @@
+name: "Linear: comment on a merged PR's issue"
+description: |
+  On PR merge, comments on the Linear issue linked to the merged branch, @mentioning its
+  assignee (e.g. "Merged & on staging"). Posts as the OAuth app (a bot), so no personal
+  Linear seat is used. Needs no Linear release and no actions/checkout.
+
+inputs:
+  linear_client_id:
+    description: "Linear OAuth app client ID (client-credentials grant). With linear_client_secret, comments on the branch's issue. Omit both to skip."
+    required: false
+    default: ""
+  linear_client_secret:
+    description: "Linear OAuth app client secret. Required together with linear_client_id to post comments."
+    required: false
+    default: ""
+  branch_name:
+    description: "Merged PR head branch, used to find the Linear issue. Defaults to github.head_ref."
+    required: false
+    default: ""
+  message:
+    description: "Comment body; the assignee @mention is appended after ' — '."
+    required: false
+    default: "✅ Merged & on staging"
+
+runs:
+  using: "composite"
+  steps:
+    - name: Comment on the merged PR's Linear issue
+      shell: bash
+      env:
+        LINEAR_CLIENT_ID: ${{ inputs.linear_client_id }}
+        LINEAR_CLIENT_SECRET: ${{ inputs.linear_client_secret }}
+        PR_URL: ${{ github.event.pull_request.html_url }}
+        PR_TITLE: ${{ github.event.pull_request.title }}
+        PR_BODY: ${{ github.event.pull_request.body }}
+        BRANCH_NAME: ${{ inputs.branch_name != '' && inputs.branch_name || github.head_ref }}
+        MESSAGE: ${{ inputs.message }}
+      run: node "${{ github.action_path }}/notify.js"

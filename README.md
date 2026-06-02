@@ -65,42 +65,23 @@ Same as for deploys: use `technote-space/workflow-conclusion-action@v3`.
           status: ${{ env.WORKFLOW_CONCLUSION }}
 ```
 
-### Linear release + notify
+### Linear notifications
 
-`linear-release-notify` records a Linear continuous-release for the commits in a deploy and, when given OAuth app credentials, comments on each released issue @mentioning its assignee — "✅ Merged & on staging" or "🚀 Shipped to production". This nudges assignees to verify their work on staging and tells them when it reaches production.
+Two actions nudge issue assignees in Linear. Both post **as an OAuth app (a bot)** — so no personal Linear seat is used, the comment isn't tied to a person, and the assignee actually gets notified (Linear never notifies you of your own comments). Both are best-effort: a Linear API problem is reported as a workflow `::warning::` but never fails the job.
 
-Two requirements:
+Both need one Linear **OAuth app**: create it under **Settings → API → OAuth applications** with the `read` and `comments:create` scopes and the **client-credentials** grant enabled, then store its id/secret as the org secrets `LINEAR_CLIENT_ID` / `LINEAR_CLIENT_SECRET`. The actions mint a short-lived app token at run time, so you never store a user token.
 
-- Run `actions/checkout` with `fetch-depth: 0` **before** the action — the release action needs full git history. A shallow checkout produces an empty release.
-- `linear_access_key` is the per-pipeline key that selects which Linear pipeline/environment the release lands in, so **staging and production use different keys**. The `environment` input only controls the comment wording, so keep it consistent with the key you pass (it defaults to `production`).
+#### Production — on deploy (`linear-release-notify`)
 
-`linear_client_id` / `linear_client_secret` are a Linear **OAuth app** (client-credentials grant) used to post the @mention comments **as a bot**: the app is not a paid Linear seat and is not tied to a person, and because the bot (not you) authors the comment, the assignee actually gets notified. The action mints a short-lived app token at run time, so you only ever store the client id/secret. Create the app under **Settings → API → OAuth applications** with the `read` and `comments:create` scopes and the client-credentials grant enabled. Omit both inputs to record the release without commenting. Notifications are best-effort: a Linear API problem is reported as a workflow `::warning::` annotation but never fails the deploy.
+Records a Linear release for the commits in the production deploy and comments "🚀 Shipped to production" on each released issue, @mentioning its assignee.
 
-#### Staging
-
-```yaml
-  linear-release-staging:
-    runs-on: ubuntu-latest
-    needs: [ deploy-google-cloud ]
-    if: success() && github.ref == 'refs/heads/master'
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-      - uses: seatsio/seatsio-github-actions/linear-release-notify@v1
-        with:
-          linear_access_key: ${{ secrets.LINEAR_STAGING_ACCESS_KEY }}
-          linear_client_id: ${{ secrets.LINEAR_CLIENT_ID }}
-          linear_client_secret: ${{ secrets.LINEAR_CLIENT_SECRET }}
-          environment: staging
-```
-
-#### Production
+- Run `actions/checkout` with `fetch-depth: 0` **before** it — the release action needs full git history; a shallow checkout produces an empty release.
+- `linear_access_key` is that repo's **production** release-pipeline key. `environment` only controls the comment wording (defaults to `production`).
 
 ```yaml
   linear-release-production:
     runs-on: ubuntu-latest
-    needs: [ deploy-google-cloud ]
+    needs: [ deploy-google-cloud ]          # ← your production deploy job
     if: success() && github.ref == 'refs/heads/master'
     steps:
       - uses: actions/checkout@v4
@@ -108,10 +89,30 @@ Two requirements:
           fetch-depth: 0
       - uses: seatsio/seatsio-github-actions/linear-release-notify@v1
         with:
-          linear_access_key: ${{ secrets.LINEAR_ACCESS_KEY }}
+          linear_access_key: ${{ secrets.LINEAR_PRODUCTION_ACCESS_KEY }}
           linear_client_id: ${{ secrets.LINEAR_CLIENT_ID }}
           linear_client_secret: ${{ secrets.LINEAR_CLIENT_SECRET }}
           environment: production
+```
+
+#### Staging — on PR merge (`linear-merge-notify`)
+
+Comments "✅ Merged & on staging" on the Linear issue linked to a merged PR, @mentioning its assignee.
+
+```yaml
+on:
+  pull_request:
+    types: [closed]
+
+jobs:
+  linear-staging-nudge:
+    if: github.event.pull_request.merged == true && github.event.pull_request.base.ref == 'master'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: seatsio/seatsio-github-actions/linear-merge-notify@v1
+        with:
+          linear_client_id: ${{ secrets.LINEAR_CLIENT_ID }}
+          linear_client_secret: ${{ secrets.LINEAR_CLIENT_SECRET }}
 ```
 
 ## Releasing

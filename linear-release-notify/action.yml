@@ -40,4 +40,4 @@ runs:
         LINEAR_CLIENT_SECRET: ${{ inputs.linear_client_secret }}
         RELEASE_ID: ${{ steps.release.outputs.release-id }}
         ENVIRONMENT: ${{ inputs.environment }}
-      run: bash "${{ github.action_path }}/notify.sh"
+      run: node "${{ github.action_path }}/notify.js"
