@@ -1,30 +1,27 @@
 name: "Linear: release + notify assignees"
 description: |
-  Records a Linear release from the commits in this deploy.
-  When Linear OAuth app credentials (client id + secret) are set, also comments on each released
-  issue @mentioning its assignee, posting as the app (a bot) so no personal Linear seat is used.
-  Requires the caller to run actions/checkout with fetch-depth: 0 first (the release action needs full git history).
+  Records a Linear release and tags assignees 
 
 inputs:
   linear_access_key:
     description: "Linear release-pipeline access key. Selects which pipeline/environment the release lands in."
     required: true
   linear_client_id:
-    description: "Linear OAuth app client ID (client-credentials grant). With linear_client_secret, comments on each released issue mentioning the assignee, posted as the app. Omit both to skip comments."
+    description: "Linear OAuth app client ID"
     required: false
     default: ""
   linear_client_secret:
-    description: "Linear OAuth app client secret. Required together with linear_client_id to post comments."
+    description: "Linear OAuth app client secret."
     required: false
     default: ""
   environment:
-    description: "Deploy environment, used to phrase the comment: production or staging."
+    description: "Deploy environment: production or staging."
     required: false
     default: "production"
 
 outputs:
   release-url:
-    description: "URL of the Linear release, if one was created."
+    description: "URL of the Linear release."
     value: ${{ steps.release.outputs.release-url }}
 
 runs:
