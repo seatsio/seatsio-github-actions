@@ -81,7 +81,7 @@ Two requirements:
 ```yaml
   linear-release-staging:
     runs-on: ubuntu-latest
-    needs: [ deploy-staging ]
+    needs: [ deploy-google-cloud ]
     if: success() && github.ref == 'refs/heads/master'
     steps:
       - uses: actions/checkout@v4
@@ -100,7 +100,7 @@ Two requirements:
 ```yaml
   linear-release-production:
     runs-on: ubuntu-latest
-    needs: [ deploy-production ]
+    needs: [ deploy-google-cloud ]
     if: success() && github.ref == 'refs/heads/master'
     steps:
       - uses: actions/checkout@v4
