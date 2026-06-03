@@ -1,0 +1,43 @@
+name: "Linear: release + notify assignees"
+description: |
+  Records a Linear release and tags assignees 
+
+inputs:
+  linear_access_key:
+    description: "Linear release-pipeline access key. Selects which pipeline/environment the release lands in."
+    required: true
+  linear_client_id:
+    description: "Linear OAuth app client ID"
+    required: false
+    default: ""
+  linear_client_secret:
+    description: "Linear OAuth app client secret."
+    required: false
+    default: ""
+  environment:
+    description: "Deploy environment: production or staging."
+    required: false
+    default: "production"
+
+outputs:
+  release-url:
+    description: "URL of the Linear release."
+    value: ${{ steps.release.outputs.release-url }}
+
+runs:
+  using: "composite"
+  steps:
+    - id: release
+      uses: linear/linear-release-action@v0
+      with:
+        access_key: ${{ inputs.linear_access_key }}
+
+    - name: Tag assignees on released issues
+      if: ${{ inputs.linear_client_id != '' && inputs.linear_client_secret != '' && steps.release.outputs.release-id != '' }}
+      shell: bash
+      env:
+        LINEAR_CLIENT_ID: ${{ inputs.linear_client_id }}
+        LINEAR_CLIENT_SECRET: ${{ inputs.linear_client_secret }}
+        RELEASE_ID: ${{ steps.release.outputs.release-id }}
+        ENVIRONMENT: ${{ inputs.environment }}
+      run: node "${{ github.action_path }}/notify.js"
