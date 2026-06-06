@@ -11,7 +11,15 @@ inputs:
     description: "Linear OAuth app client secret."
     required: true
   branch_name:
-    description: "Merged PR head branch, used to find the Linear issue. Defaults to github.head_ref."
+    description: "Merged PR head branch, used to find the Linear issue."
+    required: false
+    default: ""
+  pr_url:
+    description: "Merged PR URL. Used to find the Linear issue via the PR attachment Linear's GitHub integration creates."
+    required: false
+    default: ""
+  pr_title:
+    description: "Merged PR title. A SEATS-### identifier in it is used as a fallback to find the issue."
     required: false
     default: ""
   message:
@@ -27,9 +35,8 @@ runs:
       env:
         LINEAR_CLIENT_ID: ${{ inputs.linear_client_id }}
         LINEAR_CLIENT_SECRET: ${{ inputs.linear_client_secret }}
-        PR_URL: ${{ github.event.pull_request.html_url }}
-        PR_TITLE: ${{ github.event.pull_request.title }}
-        PR_BODY: ${{ github.event.pull_request.body }}
-        BRANCH_NAME: ${{ inputs.branch_name != '' && inputs.branch_name || github.head_ref }}
+        PR_URL: ${{ inputs.pr_url }}
+        PR_TITLE: ${{ inputs.pr_title }}
+        BRANCH_NAME: ${{ inputs.branch_name }}
         MESSAGE: ${{ inputs.message }}
       run: node "${{ github.action_path }}/notify.js"
