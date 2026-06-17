@@ -28,7 +28,6 @@ async function main() {
   if (!ok) warn(`comment on ${issue.identifier} failed: ${JSON.stringify(errors)}`);
 }
 
-// Moves the issue to the TARGET_STATE id unless it's already completed/canceled.
 async function moveState(token, issue) {
   const type = issue.state?.type;
   if (type === "completed" || type === "canceled") return info(`${issue.identifier} already ${type}; not moving`);
