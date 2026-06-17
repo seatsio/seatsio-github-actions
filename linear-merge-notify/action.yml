@@ -1,7 +1,7 @@
 name: "Linear: comment on a merged PR's issue"
 description: |
   On PR merge, comments on the Linear issue linked to the merged branch, @mentioning its
-  assignee (e.g. "Merged & on staging").
+  assignee (e.g. "Merged & on staging"). Can optionally move the issue to a given state.
 
 inputs:
   linear_client_id:
@@ -18,6 +18,10 @@ inputs:
     description: "Comment body; the assignee @mention is appended after ' — '."
     required: false
     default: "✅ Merged & on staging"
+  target_state:
+    description: "Optional Linear workflow state id to move the issue to. Omit to only comment. Skipped if the issue is already completed or canceled."
+    required: false
+    default: ""
 
 runs:
   using: "composite"
@@ -32,4 +36,5 @@ runs:
         PR_BODY: ${{ github.event.pull_request.body }}
         BRANCH_NAME: ${{ inputs.branch_name != '' && inputs.branch_name || github.head_ref }}
         MESSAGE: ${{ inputs.message }}
+        TARGET_STATE: ${{ inputs.target_state }}
       run: node "${{ github.action_path }}/notify.js"
