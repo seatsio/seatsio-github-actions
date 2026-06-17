@@ -97,7 +97,7 @@ Records a Linear release for the commits in the production deploy and comments "
 
 #### Staging — on PR merge (`linear-merge-notify`)
 
-Comments on the Linear issue linked to a merged PR, @mentioning its assignee (default "✅ Merged & on staging"). Optionally moves the issue to a workflow state via `target_state` (the Linear state id) — handy when a merge ships straight to production (e.g. the docs site). The move is skipped if the issue is already completed or canceled, so a later PR can't drag a finished issue backwards.
+Comments on the Linear issue linked to a merged PR, @mentioning its assignee (default "✅ Merged & on staging"). Optionally moves the issue to a workflow state via `target_state` (the Linear state id) — for when a merge ships straight to production.
 
 ```yaml
 on:
