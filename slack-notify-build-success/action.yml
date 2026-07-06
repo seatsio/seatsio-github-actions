@@ -35,6 +35,9 @@ runs:
           "sdivelbiss")
             echo "slack_user=<@U090TNSKADS>" >> $GITHUB_OUTPUT
             ;;
+          "latviancoder")
+            echo "slack_user=<@U0BCF4SD0RK>" >> $GITHUB_OUTPUT
+            ;;
           *)
             echo "slack_user=${{ github.actor }}" >> $GITHUB_OUTPUT
             ;;
