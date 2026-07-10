@@ -8,6 +8,10 @@ inputs:
   webhook_url:
     description: "Slack webhook URL"
     required: true
+  staging_url:
+    description: "Optional staging environment link."
+    required: false
+    default: ""
 
 runs:
   using: "composite"
@@ -53,7 +57,7 @@ runs:
             "attachments": [
               {
                 "color": "good",
-                "text": "*Commit*: <https://github.com/${{ github.repository }}/commit/${{ github.event.workflow_run.head_sha || github.sha }}|${{ github.event.workflow_run.head_sha || github.sha }}>\n*Run*: <https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}|View on GitHub>"
+                "text": "*Commit*: <https://github.com/${{ github.repository }}/commit/${{ github.event.workflow_run.head_sha || github.sha }}|${{ github.event.workflow_run.head_sha || github.sha }}>\n*Run*: <https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}|View on GitHub>${{ inputs.staging_url != '' && format('\n*Staging*: <{0}|Open staging>', inputs.staging_url) || '' }}"
               }
             ]
           }

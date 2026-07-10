@@ -16,6 +16,7 @@ See examples below.
         - uses: seatsio/seatsio-github-actions/slack-notify-build-success@v1
           with:
              webhook_url: ${{ secrets.SLACK_WEBHOOK_URL }}
+             staging_url: https://staging.example.com
 ```
 
 ### Build failure
