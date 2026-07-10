@@ -9,7 +9,7 @@ inputs:
     description: "Slack webhook URL"
     required: true
   staging_url:
-    description: "Optional link to this repo's staging environment, shown so it can be checked before deploying."
+    description: "Optional staging environment link."
     required: false
     default: ""
 
