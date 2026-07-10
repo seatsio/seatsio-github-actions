@@ -8,6 +8,10 @@ inputs:
   webhook_url:
     description: "Slack webhook URL"
     required: true
+  staging_url:
+    description: "Optional link to this repo's staging environment, shown so it can be checked before deploying."
+    required: false
+    default: ""
 
 runs:
   using: "composite"
@@ -53,7 +57,7 @@ runs:
             "attachments": [
               {
                 "color": "good",
-                "text": "*Commit*: <${{ github.event.head_commit.url }}|${{ github.sha }}>"
+                "text": "*Commit*: <${{ github.event.head_commit.url }}|${{ github.sha }}>${{ inputs.staging_url != '' && format('\n*Staging*: <{0}|Open staging>', inputs.staging_url) || '' }}"
               }
             ]
           }
