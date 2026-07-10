@@ -53,7 +53,7 @@ runs:
             "attachments": [
               {
                 "color": "good",
-                "text": "*Commit*: <${{ github.event.head_commit.url }}|${{ github.sha }}>\n*Run*: <https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}|View on GitHub>"
+                "text": "*Commit*: <https://github.com/${{ github.repository }}/commit/${{ github.event.workflow_run.head_sha || github.sha }}|${{ github.event.workflow_run.head_sha || github.sha }}>\n*Run*: <https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}|View on GitHub>"
               }
             ]
           }
