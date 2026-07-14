@@ -12,6 +12,10 @@ inputs:
     description: "Optional staging environment link."
     required: false
     default: ""
+  deployment_pipeline_app:
+    description: "Optional app identifier for the app.seats.io deployment-pipeline link (e.g. WEBAPP, CORE_V2). When set, adds a 'Deploy here' link."
+    required: false
+    default: ""
 
 runs:
   using: "composite"
@@ -57,7 +61,7 @@ runs:
             "attachments": [
               {
                 "color": "good",
-                "text": "*Commit*: <https://github.com/${{ github.repository }}/commit/${{ github.event.workflow_run.head_sha || github.sha }}|${{ github.event.workflow_run.head_sha || github.sha }}>\n*Run*: <https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}|View on GitHub>${{ inputs.staging_url != '' && format('\n*Staging*: <{0}|Open staging>', inputs.staging_url) || '' }}"
+                "text": "*Commit*: <https://github.com/${{ github.repository }}/commit/${{ github.event.workflow_run.head_sha || github.sha }}|${{ github.event.workflow_run.head_sha || github.sha }}>${{ inputs.deployment_pipeline_app != '' && format('\n*Deploy*: <https://app.seats.io/admin/deployment-pipeline/{0}|Deploy here>', inputs.deployment_pipeline_app) || '' }}${{ inputs.staging_url != '' && format('\n*Staging*: <{0}|Open staging>', inputs.staging_url) || '' }}"
               }
             ]
           }
