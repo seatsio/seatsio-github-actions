@@ -17,6 +17,7 @@ See examples below.
           with:
              webhook_url: ${{ secrets.SLACK_WEBHOOK_URL }}
              staging_url: https://staging.example.com
+             deployment_pipeline_app: WEBAPP # optional: adds a "Deploy here" link to app.seats.io
 ```
 
 ### Build failure
