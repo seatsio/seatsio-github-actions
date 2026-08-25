@@ -43,7 +43,7 @@ The status will be either `success`, `failure` or `cancelled`.
   notify-slack:
     runs-on: ubuntu-latest
     needs: [deploy-google-cloud]
-    if: always() && needs.deploy-google-cloud.result != 'skipped'
+    if: always()
     steps:
       - uses: seatsio/seatsio-github-actions/slack-notify-deploy@v1
         with:
@@ -59,7 +59,7 @@ Same as for deploys: pass in `needs.<job_id>.result`.
   notify-slack:
     runs-on: ubuntu-latest
     needs: [rollback]
-    if: always() && needs.rollback.result != 'skipped'
+    if: always()
     steps:
       - uses: seatsio/seatsio-github-actions/slack-notify-rollback-deploy@v1
         with:
