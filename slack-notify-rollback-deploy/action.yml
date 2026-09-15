@@ -8,7 +8,7 @@ inputs:
     description: "Slack webhook URL"
     required: true
   status:
-    description: "Rollback result: success, failure, or cancelled. Use technote-space/workflow-conclusion-action@v3"
+    description: "Rollback result: success, failure or cancelled. Pass in the rollback job's needs.<job_id>.result"
     required: true
 
 runs:

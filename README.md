@@ -39,8 +39,8 @@ release rather than deploy.
              webhook_url: ${{ secrets.SLACK_WEBHOOK_URL }}
 ```
 
-Use `slack-notify-build-failure` for the failure case — there is no client-library
-variant.
+Use `slack-notify-build-failure` for the build-failure case — there is no
+client-library variant.
 
 ### Build failure
 
@@ -57,8 +57,9 @@ variant.
 
 ### Deploys
 
-Use `technote-space/workflow-conclusion-action@v3` to get the workflow conclusion, and pass it in as `status` input. 
-The status will be either `success`, `failure` or `cancelled`
+Pass the result of the deploy job in as the `status` input, using the built-in `needs.<job_id>.result` context.
+The status will be either `success`, `failure` or `cancelled`.
+
 
 ```yml
   notify-slack:
@@ -66,27 +67,26 @@ The status will be either `success`, `failure` or `cancelled`
     needs: [deploy-google-cloud]
     if: always()
     steps:
-      - uses: technote-space/workflow-conclusion-action@v3
       - uses: seatsio/seatsio-github-actions/slack-notify-deploy@v2
         with:
           webhook_url: ${{ secrets.SLACK_WEBHOOK_URL }}
-          status: ${{ env.WORKFLOW_CONCLUSION }}
+          status: ${{ needs.deploy-google-cloud.result }}
 
 ```
 
 ### Rollbacks
-Same as for deploys: use `technote-space/workflow-conclusion-action@v3`. 
+Same as for deploys: pass in `needs.<job_id>.result`.
 
 ```yml
   notify-slack:
     runs-on: ubuntu-latest
     needs: [rollback]
+    if: always()
     steps:
-      - uses: technote-space/workflow-conclusion-action@v3
       - uses: seatsio/seatsio-github-actions/slack-notify-rollback-deploy@v2
         with:
           webhook_url: ${{ secrets.SLACK_WEBHOOK_URL }}
-          status: ${{ env.WORKFLOW_CONCLUSION }}
+          status: ${{ needs.rollback.result }}
 ```
 
 ### Linear notifications
