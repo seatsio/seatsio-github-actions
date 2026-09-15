@@ -13,12 +13,34 @@ See examples below.
     needs: [ test, deploy-google-cloud ]
     if: success() && github.ref == 'refs/heads/master'
     steps:
-        - uses: seatsio/seatsio-github-actions/slack-notify-build-success@v1
+        - uses: seatsio/seatsio-github-actions/slack-notify-build-success@v2
           with:
              webhook_url: ${{ secrets.SLACK_WEBHOOK_URL }}
              staging_url: https://staging.example.com
              deployment_pipeline_app: WEBAPP # optional: adds a "Deploy here" link to app.seats.io
 ```
+
+### Build success (client libraries)
+
+Client libraries (`seatsio-react`, `seatsio-vue`, `seatsio-angular`,
+`seatsio-react-native`) are released by manually dispatching `release.yml` rather
+than through the deployment pipeline, so they use a dedicated action. It links
+the release workflow instead of the deployment pipeline, and asks the actor to
+release rather than deploy.
+
+```yaml
+  notify-slack-success:
+    runs-on: ubuntu-latest
+    needs: [ build ]
+    if: success() && github.ref == 'refs/heads/master'
+    steps:
+        - uses: seatsio/seatsio-github-actions/slack-notify-clientlib-build-success@v2
+          with:
+             webhook_url: ${{ secrets.SLACK_WEBHOOK_URL }}
+```
+
+Use `slack-notify-build-failure` for the build-failure case — there is no
+client-library variant.
 
 ### Build failure
 
@@ -28,7 +50,7 @@ See examples below.
     needs: [ test, deploy-google-cloud ]
     if: failure() && github.ref == 'refs/heads/master'
     steps:
-        - uses: seatsio/seatsio-github-actions/slack-notify-build-failure@v1
+        - uses: seatsio/seatsio-github-actions/slack-notify-build-failure@v2
           with:
              webhook_url: ${{ secrets.SLACK_WEBHOOK_URL }}
 ```
@@ -45,7 +67,7 @@ The status will be either `success`, `failure` or `cancelled`.
     needs: [deploy-google-cloud]
     if: always()
     steps:
-      - uses: seatsio/seatsio-github-actions/slack-notify-deploy@v1
+      - uses: seatsio/seatsio-github-actions/slack-notify-deploy@v2
         with:
           webhook_url: ${{ secrets.SLACK_WEBHOOK_URL }}
           status: ${{ needs.deploy-google-cloud.result }}
@@ -61,7 +83,7 @@ Same as for deploys: pass in `needs.<job_id>.result`.
     needs: [rollback]
     if: always()
     steps:
-      - uses: seatsio/seatsio-github-actions/slack-notify-rollback-deploy@v1
+      - uses: seatsio/seatsio-github-actions/slack-notify-rollback-deploy@v2
         with:
           webhook_url: ${{ secrets.SLACK_WEBHOOK_URL }}
           status: ${{ needs.rollback.result }}
@@ -89,7 +111,7 @@ Records a Linear release for the commits in the production deploy and comments "
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - uses: seatsio/seatsio-github-actions/linear-release-notify@v1
+      - uses: seatsio/seatsio-github-actions/linear-release-notify@v2
         with:
           linear_access_key: ${{ secrets.LINEAR_PRODUCTION_ACCESS_KEY }}
           linear_client_id: ${{ secrets.LINEAR_CLIENT_ID }}
@@ -111,7 +133,7 @@ jobs:
     if: github.event.pull_request.merged == true && github.event.pull_request.base.ref == 'master'
     runs-on: ubuntu-latest
     steps:
-      - uses: seatsio/seatsio-github-actions/linear-merge-notify@v1
+      - uses: seatsio/seatsio-github-actions/linear-merge-notify@v2
         with:
           linear_client_id: ${{ secrets.LINEAR_CLIENT_ID }}
           linear_client_secret: ${{ secrets.LINEAR_CLIENT_SECRET }}
@@ -120,7 +142,7 @@ jobs:
 Set `target_state` to also move the issue — e.g. docs that deploy to production on merge:
 
 ```yaml
-      - uses: seatsio/seatsio-github-actions/linear-merge-notify@v1
+      - uses: seatsio/seatsio-github-actions/linear-merge-notify@v2
         with:
           linear_client_id: ${{ secrets.LINEAR_CLIENT_ID }}
           linear_client_secret: ${{ secrets.LINEAR_CLIENT_SECRET }}
@@ -131,11 +153,11 @@ Set `target_state` to also move the issue — e.g. docs that deploy to productio
 ## Releasing
 Non breaking changes (e.g. tweaks to the messages) can simply be released under the current version tag. This makes the changes available to all projects using the action, without having to bump versions there. 
 
-In order to do this (if v1 is the current version):
+In order to do this (if v2 is the current version):
 ```shell
 git push origin master
-git tag -f v1
-git push --force origin v1
+git tag -f v2
+git push --force origin v2
 ```
 
 
