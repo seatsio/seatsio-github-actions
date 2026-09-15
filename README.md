@@ -55,25 +55,6 @@ variant.
              webhook_url: ${{ secrets.SLACK_WEBHOOK_URL }}
 ```
 
-### Types release success
-
-When `@seatsio/seatsio-types` is released it links each client SDK's
-`bumpSeatsioTypes.yml` workflow, so the new version can be rolled out from Slack.
-The SDK repos are hardcoded; pass the freshly released version so it shows in the
-message and can be pasted into each bump form.
-
-```yaml
-  notify-slack-success:
-    runs-on: ubuntu-latest
-    needs: [ release ]
-    if: success()
-    steps:
-        - uses: seatsio/seatsio-github-actions/slack-notify-types-release-success@v2
-          with:
-             webhook_url: ${{ secrets.SLACK_WEBHOOK_URL }}
-             version: ${{ needs.release.outputs.version }}
-```
-
 ### Deploys
 
 Use `technote-space/workflow-conclusion-action@v3` to get the workflow conclusion, and pass it in as `status` input. 
