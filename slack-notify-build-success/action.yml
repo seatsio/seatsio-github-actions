@@ -21,7 +21,7 @@ runs:
   using: "composite"
   steps:
     - id: map-user
-      uses: seatsio/seatsio-github-actions/map-github-user-to-slack@v1
+      uses: seatsio/seatsio-github-actions/map-github-user-to-slack@v2
     
     - uses: slackapi/slack-github-action@v2.0.0
       with:

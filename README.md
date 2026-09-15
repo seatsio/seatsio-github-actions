@@ -34,7 +34,7 @@ release rather than deploy.
     needs: [ build ]
     if: success() && github.ref == 'refs/heads/master'
     steps:
-        - uses: seatsio/seatsio-github-actions/slack-notify-clientlib-build-success@v1
+        - uses: seatsio/seatsio-github-actions/slack-notify-clientlib-build-success@v2
           with:
              webhook_url: ${{ secrets.SLACK_WEBHOOK_URL }}
 ```
@@ -68,7 +68,7 @@ message and can be pasted into each bump form.
     needs: [ release ]
     if: success()
     steps:
-        - uses: seatsio/seatsio-github-actions/slack-notify-types-release-success@v1
+        - uses: seatsio/seatsio-github-actions/slack-notify-types-release-success@v2
           with:
              webhook_url: ${{ secrets.SLACK_WEBHOOK_URL }}
              version: ${{ needs.release.outputs.version }}
