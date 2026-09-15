@@ -20,6 +20,28 @@ See examples below.
              deployment_pipeline_app: WEBAPP # optional: adds a "Deploy here" link to app.seats.io
 ```
 
+### Build success (client libraries)
+
+Client libraries (`seatsio-react`, `seatsio-vue`, `seatsio-angular`,
+`seatsio-react-native`) are released by manually dispatching `release.yml` rather
+than through the deployment pipeline, so they use a dedicated action. It links
+the release workflow instead of the deployment pipeline, and asks the actor to
+release rather than deploy.
+
+```yaml
+  notify-slack-success:
+    runs-on: ubuntu-latest
+    needs: [ build ]
+    if: success() && github.ref == 'refs/heads/master'
+    steps:
+        - uses: seatsio/seatsio-github-actions/slack-notify-clientlib-build-success@v1
+          with:
+             webhook_url: ${{ secrets.SLACK_WEBHOOK_URL }}
+```
+
+Use `slack-notify-build-failure` for the failure case — there is no client-library
+variant.
+
 ### Build failure
 
 ```yaml
@@ -31,6 +53,25 @@ See examples below.
         - uses: seatsio/seatsio-github-actions/slack-notify-build-failure@v1
           with:
              webhook_url: ${{ secrets.SLACK_WEBHOOK_URL }}
+```
+
+### Types release success
+
+When `@seatsio/seatsio-types` is released it links each client SDK's
+`bumpSeatsioTypes.yml` workflow, so the new version can be rolled out from Slack.
+The SDK repos are hardcoded; pass the freshly released version so it shows in the
+message and can be pasted into each bump form.
+
+```yaml
+  notify-slack-success:
+    runs-on: ubuntu-latest
+    needs: [ release ]
+    if: success()
+    steps:
+        - uses: seatsio/seatsio-github-actions/slack-notify-types-release-success@v1
+          with:
+             webhook_url: ${{ secrets.SLACK_WEBHOOK_URL }}
+             version: ${{ needs.release.outputs.version }}
 ```
 
 ### Deploys
