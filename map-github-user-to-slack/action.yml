@@ -1,7 +1,7 @@
 name: "Map GitHub user to Slack user"
 description: |
-  Maps ${{ github.actor }} to a Slack mention, exposed as the `slack_user` output.
-  Falls back to the raw GitHub username when there is no mapping.
+  Maps the GitHub actor (github.actor) to a Slack mention, exposed as the `slack_user`
+  output. Falls back to the raw GitHub username when there is no mapping.
 
   Used by the slack-notify-* success actions so the GitHub→Slack lookup lives in one place.
 
