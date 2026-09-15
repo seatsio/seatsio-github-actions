@@ -1,0 +1,44 @@
+name: "Map GitHub user to Slack user"
+description: |
+  Maps ${{ github.actor }} to a Slack mention, exposed as the `slack_user` output.
+  Falls back to the raw GitHub username when there is no mapping.
+
+  Used by the slack-notify-* success actions so the GitHub→Slack lookup lives in one place.
+
+outputs:
+  slack_user:
+    description: "Slack mention for the GitHub actor (e.g. <@U123>), or the raw actor if unmapped"
+    value: ${{ steps.map.outputs.slack_user }}
+
+runs:
+  using: "composite"
+  steps:
+    - id: map
+      shell: bash
+      run: |
+        case "${{ github.actor }}" in
+          "mroloux")
+            echo "slack_user=<@U0ARJS7V1>" >> $GITHUB_OUTPUT
+            ;;
+          "schaloner")
+            echo "slack_user=<@U04GD5VV1MJ>" >> $GITHUB_OUTPUT
+            ;;
+          "bverbeken")
+            echo "slack_user=<@U08TY1PMK>" >> $GITHUB_OUTPUT
+            ;;
+          "PabloNeirotti")
+            echo "slack_user=<@U6TTMGX4G>" >> $GITHUB_OUTPUT
+            ;;
+          "mortendevold")
+            echo "slack_user=<@U04LW9F53HS>" >> $GITHUB_OUTPUT
+            ;;
+          "sdivelbiss")
+            echo "slack_user=<@U090TNSKADS>" >> $GITHUB_OUTPUT
+            ;;
+          "latviancoder")
+            echo "slack_user=<@U0BCF4SD0RK>" >> $GITHUB_OUTPUT
+            ;;
+          *)
+            echo "slack_user=${{ github.actor }}" >> $GITHUB_OUTPUT
+            ;;
+        esac
