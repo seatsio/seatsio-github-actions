@@ -1,0 +1,103 @@
+name: Bump @seatsio/seatsio-types
+
+# Reusable workflow (workflow_call) that bumps @seatsio/seatsio-types in a project
+# and opens a pull request with the updated package.json and yarn.lock.
+#
+# See the README for usage.
+
+on:
+  workflow_call:
+    inputs:
+      version:
+        description: 'New version for @seatsio/seatsio-types. Leave empty to use the latest version published on NPM.'
+        required: false
+        type: string
+        default: ''
+      node_version:
+        description: 'Node version to use.'
+        required: false
+        type: string
+        default: '24'
+      base_branch:
+        description: 'Branch to open the pull request against.'
+        required: false
+        type: string
+        default: 'master'
+
+jobs:
+  bump-version:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Set up Node
+        uses: actions/setup-node@v7
+        with:
+          node-version: ${{ inputs.node_version }}
+
+      - name: Resolve version
+        env:
+          INPUT_VERSION: ${{ inputs.version }}
+        run: |
+          PKG="@seatsio/seatsio-types"
+          VERSION="$INPUT_VERSION"
+          if [ -z "$VERSION" ]; then
+            VERSION=$(npm view "$PKG" version)
+            echo "No version specified, using the latest version published on NPM: $VERSION"
+          fi
+          if ! [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "::error::Invalid version '$VERSION'. Expected something like 6.16.0"
+            exit 1
+          fi
+
+          CURRENT=$(jq -r --arg pkg "$PKG" '.dependencies[$pkg] // empty' package.json)
+          if [ -z "$CURRENT" ]; then
+            echo "::error::$PKG not found in dependencies of package.json"
+            exit 1
+          fi
+          if [ "$CURRENT" = "$VERSION" ]; then
+            echo "::error::$PKG is already at version $VERSION, nothing to bump"
+            exit 1
+          fi
+          NEWEST=$(printf '%s\n%s\n' "$CURRENT" "$VERSION" | sort -V | tail -n1)
+          if [ "$NEWEST" != "$VERSION" ]; then
+            echo "::error::$VERSION is older than the current version $CURRENT, refusing to downgrade"
+            exit 1
+          fi
+
+          echo "Bumping $PKG from $CURRENT to $VERSION"
+          echo "VERSION=$VERSION" >> "$GITHUB_ENV"
+
+      - name: Update package.json
+        run: |
+          PKG="@seatsio/seatsio-types"
+          file="package.json"
+          jq --arg pkg "$PKG" --arg v "$VERSION" '.dependencies[$pkg] = $v' \
+            "$file" > "$file.tmp" && mv "$file.tmp" "$file"
+          echo "Updated $PKG to $VERSION in $file:"
+          grep "$PKG" "$file"
+
+      - name: Update yarn.lock
+        run: yarn install
+
+      - name: Build library
+        run: yarn build
+
+      - name: Create pull request
+        uses: peter-evans/create-pull-request@v8
+        with:
+          commit-message: "chore: bump @seatsio/seatsio-types to ${{ env.VERSION }}"
+          title: "Bump @seatsio/seatsio-types to ${{ env.VERSION }}"
+          body: |
+            Updates `@seatsio/seatsio-types` to `${{ env.VERSION }}` and refreshes `yarn.lock`.
+          branch: "bump/seatsio-types-${{ env.VERSION }}"
+          base: ${{ inputs.base_branch }}
+          add-paths: |
+            package.json
+            yarn.lock
+
