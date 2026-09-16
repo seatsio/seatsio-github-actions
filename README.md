@@ -150,6 +150,48 @@ Set `target_state` to also move the issue — e.g. docs that deploy to productio
           message: "🚀 Docs deployed to production"
 ```
 
+### Bump @seatsio/seatsio-types
+
+A reusable **workflow** (not an action) that bumps `@seatsio/seatsio-types` in a client library, refreshes `yarn.lock`, builds the library, and opens a pull request.
+
+Add a thin workflow to the repo that calls it:
+
+```yaml
+name: Bump @seatsio/seatsio-types version
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'New version for @seatsio/seatsio-types. Leave empty to use the latest version published on NPM.'
+        required: false
+        type: string
+
+jobs:
+  bump:
+    uses: seatsio/seatsio-github-actions/.github/workflows/bump-seatsio-types.yml@v2
+    with:
+      version: ${{ inputs.version }}
+    permissions:
+      contents: write
+      pull-requests: write
+```
+
+It expects `@seatsio/seatsio-types` in `dependencies` (not `devDependencies` — it appears in the published `.d.ts` files, so consumers need it installed), refuses to downgrade, and fails if the package is already at the requested version. It assumes yarn (`yarn install` + `yarn build`).
+
+Every tracked `package.json` that declares the package is updated, in whichever of `dependencies` / `devDependencies` / `peerDependencies` it appears, and every nested `yarn.lock` is refreshed. So repos with more than one manifest — `seatsio-react-native/example`, `seatsio-angular/projects/seatsio-angular` — work with no extra configuration.
+
+Optional inputs (with their defaults):
+
+| input | default | description |
+| --- | --- | --- |
+| `version` | `''` | Version to bump to. Empty ⇒ latest published on NPM. |
+| `node_version` | `24` | Node version to use. |
+| `base_branch` | `master` | Branch to open the PR against. |
+
+Note: in order for the pull request to be created, **Settings → Actions → General → Allow GitHub Actions to create and approve pull requests** must be enabled for the repo (or the org).
+
+
 ## Releasing
 Non breaking changes (e.g. tweaks to the messages) can simply be released under the current version tag. This makes the changes available to all projects using the action, without having to bump versions there. 
 

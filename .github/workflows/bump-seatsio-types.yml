@@ -1,0 +1,120 @@
+name: Bump @seatsio/seatsio-types
+
+# Reusable workflow (workflow_call) that bumps @seatsio/seatsio-types in a project
+# and opens a pull request with the updated package.json and yarn.lock files.
+#
+# Every tracked package.json that declares the package is updated, so repos with more
+# than one manifest (an example app, an inner library project, ...) need no extra config.
+#
+# See the README for usage.
+
+on:
+  workflow_call:
+    inputs:
+      version:
+        description: 'New version for @seatsio/seatsio-types. Leave empty to use the latest version published on NPM.'
+        required: false
+        type: string
+        default: ''
+      node_version:
+        description: 'Node version to use.'
+        required: false
+        type: string
+        default: '24'
+      base_branch:
+        description: 'Branch to open the pull request against.'
+        required: false
+        type: string
+        default: 'master'
+
+env:
+  PKG: '@seatsio/seatsio-types'
+
+jobs:
+  bump-version:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Set up Node
+        uses: actions/setup-node@v7
+        with:
+          node-version: ${{ inputs.node_version }}
+
+      - name: Resolve version
+        env:
+          INPUT_VERSION: ${{ inputs.version }}
+        run: |
+          VERSION="${INPUT_VERSION:-$(npm view "$PKG" version)}"
+          if ! [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "::error::Invalid version '$VERSION'. Expected something like 6.16.0"
+            exit 1
+          fi
+
+          # The library must declare seatsio-types as a real dependency: its types show up in the
+          # published .d.ts files, so consumers need it installed. A devDependency here is a bug.
+          CURRENT=$(jq -r --arg pkg "$PKG" '.dependencies[$pkg] // empty' package.json)
+          if [ -z "$CURRENT" ]; then
+            echo "::error::$PKG not found in .dependencies of package.json"
+            exit 1
+          fi
+          if [ "$CURRENT" = "$VERSION" ]; then
+            echo "::error::$PKG is already at version $VERSION, nothing to bump"
+            exit 1
+          fi
+          if [ "$(printf '%s\n%s\n' "$CURRENT" "$VERSION" | sort -V | tail -n1)" != "$VERSION" ]; then
+            echo "::error::$VERSION is older than the current version $CURRENT, refusing to downgrade"
+            exit 1
+          fi
+
+          echo "Bumping $PKG from $CURRENT to $VERSION"
+          echo "VERSION=$VERSION" >> "$GITHUB_ENV"
+
+      - name: Update package.json files
+        run: |
+          # All three sections are handled: the library uses dependencies, example apps keep it in
+          # devDependencies, and packaged sub-projects may list it under peerDependencies.
+          git ls-files 'package.json' '*/package.json' | while read -r file; do
+            jq --arg pkg "$PKG" --arg v "$VERSION" '
+              with_entries(
+                if (.key | test("^(dependencies|devDependencies|peerDependencies)$")) and (.value | has($pkg))
+                then .value[$pkg] = $v
+                else . end
+              )' "$file" > "$file.tmp"
+            if cmp -s "$file" "$file.tmp"; then
+              rm "$file.tmp"
+            else
+              mv "$file.tmp" "$file"
+              echo "Updated $file"
+            fi
+          done
+
+      - name: Refresh lockfile and build
+        run: |
+          yarn install
+          yarn build
+
+      - name: Refresh nested lockfiles
+        run: |
+          # After the build: a nested project may depend on the freshly built output (e.g. the
+          # react-native example, which depends on "file:../dist").
+          git ls-files '*/yarn.lock' | while read -r lock; do
+            echo "Running yarn install in $(dirname "$lock")"
+            ( cd "$(dirname "$lock")" && yarn install )
+          done
+
+      - name: Create pull request
+        uses: peter-evans/create-pull-request@v8
+        with:
+          commit-message: "chore: bump @seatsio/seatsio-types to ${{ env.VERSION }}"
+          title: "Bump @seatsio/seatsio-types to ${{ env.VERSION }}"
+          body: |
+            Updates `@seatsio/seatsio-types` to `${{ env.VERSION }}` and refreshes `yarn.lock`.
+          branch: "bump/seatsio-types-${{ env.VERSION }}"
+          base: ${{ inputs.base_branch }}
+
