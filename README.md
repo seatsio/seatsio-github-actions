@@ -177,7 +177,9 @@ jobs:
       pull-requests: write
 ```
 
-It expects `@seatsio/seatsio-types` in `dependencies`, refuses to downgrade, and fails if the package is already at the requested version. It assumes yarn (`yarn install` + `yarn build`).
+It expects `@seatsio/seatsio-types` in `dependencies` (not `devDependencies` — it appears in the published `.d.ts` files, so consumers need it installed), refuses to downgrade, and fails if the package is already at the requested version. It assumes yarn (`yarn install` + `yarn build`).
+
+Every tracked `package.json` that declares the package is updated, in whichever of `dependencies` / `devDependencies` / `peerDependencies` it appears, and every nested `yarn.lock` is refreshed. So repos with more than one manifest — `seatsio-react-native/example`, `seatsio-angular/projects/seatsio-angular` — work with no extra configuration.
 
 Optional inputs (with their defaults):
 
